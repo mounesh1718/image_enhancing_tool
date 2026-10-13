@@ -1,0 +1,28 @@
+# Build output (.NET)
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# AI models are downloaded by worker/setup_ai.py (stored in %LOCALAPPDATA%\ImageQualityEnhancer\models)
+models/
+*.onnx
+*.pth
+*.pkl
+
+# Local before/after examples (photos from test documents; not published)
+docs/quality-examples/
+
+# Logs and OS files
+*.log
+Thumbs.db
+.DS_Store

@@ -1,0 +1,591 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ImageQualityEnhancer.ViewModels"
+             xmlns:local="using:ImageQualityEnhancer.Views"
+             x:Class="ImageQualityEnhancer.Views.JobView"
+             Focusable="True"
+             x:DataType="vm:JobViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.75" />
+        </Style>
+        <Style Selector="Border.panel">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PanelBrush}" />
+        </Style>
+        <Style Selector="Border.thumb">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{DynamicResource ViewerBrush}" />
+        </Style>
+        <Style Selector="Border.pill">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="8,2" />
+        </Style>
+        <Style Selector="Border.pill > TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="Border.segment">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="Padding" Value="2" />
+        </Style>
+        <Style Selector="Border.segment Button, Border.segment ToggleButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+        <Style Selector="Button.icon">
+            <Setter Property="MinWidth" Value="32" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="local|ZoomCompareView.viewer">
+            <Setter Property="Background" Value="{DynamicResource ViewerBrush}" />
+        </Style>
+        <Style Selector="Border.tag">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#B0202830" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style Selector="Border.tag.accent">
+            <Setter Property="Background" Value="#D01D5C8C" />
+        </Style>
+        <Style Selector="Border.tag > TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <!-- What to check before approving (orange bar) -->
+        <Style Selector="Border.warning">
+            <Setter Property="BorderBrush" Value="DarkOrange" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="Background" Value="#1AFF8C00" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Border.mismatch">
+            <Setter Property="BorderBrush" Value="DarkOrange" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="Background" Value="#1AFF8C00" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <!-- Group buttons above the image list -->
+        <Style Selector="ToggleButton.group">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="26" />
+            <Setter Property="CornerRadius" Value="13" />
+        </Style>
+        <Style Selector="Border.info">
+            <Setter Property="Background" Value="{DynamicResource DropZoneBrush}" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <!-- AI enhancement applied: tinted panel with a purple bar, purple picture label -->
+        <Style Selector="Border.info.aiApplied">
+            <Setter Property="Background" Value="{DynamicResource AiAppliedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AiAccentBrush}" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+        </Style>
+        <Style Selector="Border.tag.ai">
+            <Setter Property="Background" Value="#E06B46C1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*" Margin="16">
+
+        <!-- ================= Header: document, progress, main actions ================= -->
+        <Border Grid.Row="0" Classes="panel" Padding="14,12" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+                <Button Content="‹ Back" Margin="0,0,14,0" VerticalAlignment="Center" IsVisible="{Binding IsReady}"
+                        Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).BackToStartCommand}"
+                        ToolTip.Tip="Back to the start page. This job is kept, so you can continue it later." />
+
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DocumentName}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Classes="caption" TextTrimming="CharacterEllipsis" IsVisible="{Binding !IsReady}">
+                        <Run Text="{Binding StageText}" />
+                        <Run Text=" · " />
+                        <Run Text="{Binding CurrentOperation}" />
+                    </TextBlock>
+                    <TextBlock Classes="caption" TextTrimming="CharacterEllipsis" IsVisible="{Binding IsReady}">
+                        <Run Text="Ready for review · " />
+                        <Run Text="{Binding DecisionSummary}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <!-- While working -->
+                    <Button Content="Pause" Command="{Binding PauseCommand}" IsVisible="{Binding CanPause}" />
+                    <Button Content="Resume" Command="{Binding ResumeProcessingCommand}" IsVisible="{Binding CanResume}" Classes="accent" />
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" IsVisible="{Binding IsRunning}"
+                            ToolTip.Tip="Stops and removes the temporary files. Your original file is never changed." />
+                    <!-- When ready -->
+                    <Button x:Name="TryAiOnEligibleButton" Content="{Binding TryAiOnEligibleLabel}" Command="{Binding TryAiOnEligibleCommand}"
+                            IsVisible="{Binding CanTryAiOnEligible}"
+                            ToolTip.Tip="Tries AI only on the pictures where a suitable AI repair is detected; the others are left as they are. Each AI version is checked, and nothing is approved or switched for you." />
+                    <Button Content="Save report…" IsVisible="{Binding IsReady}" Command="{Binding SaveReportCommand}"
+                            ToolTip.Tip="Saves a report of every image: what was done, quality before and after, and accuracy." />
+                    <Button Content="Save new copy…" Classes="accent" IsVisible="{Binding IsReady}" IsEnabled="{Binding CanExport}"
+                            Command="{Binding ExportCommand}" ToolTip.ShowOnDisabled="True"
+                            ToolTip.Tip="Saves a new copy with only the approved images changed. Approve at least one image first. The original is never changed." />
+                    <Button Content="⋯" Classes="icon" x:Name="MoreButton" IsVisible="{Binding IsReady}" ToolTip.Tip="More">
+                        <Button.Flyout>
+                            <Flyout Placement="BottomEdgeAlignedRight">
+                                <StackPanel Spacing="10" Width="420" x:Name="MorePanel">
+                                    <Button Content="Discard this job" Command="{Binding CancelCommand}" HorizontalAlignment="Stretch"
+                                            ToolTip.Tip="Throws away all results and decisions and removes the temporary files. Your original file is not touched." />
+                                    <Separator />
+                                    <TextBlock Text="Technical details" FontWeight="SemiBold" />
+                                    <SelectableTextBlock Text="{Binding DiagnosticsText}" FontFamily="Consolas,Menlo,monospace" FontSize="12" TextWrapping="Wrap" />
+                                    <Button Content="Refresh" Command="{Binding RefreshDiagnosticsCommand}" Padding="8,2" FontSize="12" />
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
+
+                <!-- Progress, only while working -->
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Spacing="4" Margin="0,10,0,0" IsVisible="{Binding !IsReady}">
+                    <ProgressBar Minimum="0" Maximum="100" Height="8" Value="{Binding Percent}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="caption" Text="{Binding CountsText}" />
+                        <TextBlock Grid.Column="1" Classes="caption" Text="{Binding EtaText}" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- Pause reason, errors, saving the new copy -->
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Spacing="8">
+                    <!-- Trying AI: progress, and a way to stop -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,8,0,0" IsVisible="{Binding IsAiRunning}">
+                        <StackPanel Spacing="4">
+                            <TextBlock Classes="caption" Text="{Binding AiProgressText}" />
+                            <ProgressBar Minimum="0" Maximum="100" Height="6" Value="{Binding AiProgressValue}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Stop" Command="{Binding StopAiCommand}" VerticalAlignment="Center"
+                                ToolTip.Tip="Stops after the current picture. Pictures already tried keep their AI version." />
+                    </Grid>
+                    <TextBlock Foreground="DarkOrange" FontWeight="SemiBold" Margin="0,6,0,0" TextWrapping="Wrap"
+                               Text="{Binding PauseReason}" IsVisible="{Binding PauseReason, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    <TextBlock Foreground="Firebrick" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Text="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                    <Border Margin="0,8,0,0" Padding="12" CornerRadius="6"
+                            Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" IsVisible="{Binding ShowExportPanel}">
+                        <StackPanel Spacing="8">
+                            <StackPanel Spacing="8" IsVisible="{Binding ShowSignedWarning}">
+                                <TextBlock FontWeight="SemiBold" Foreground="DarkOrange" TextWrapping="Wrap"
+                                           Text="This PDF is digitally signed. Changing any image will invalidate its signature in the new copy (the signed original stays valid)." />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Save anyway" Command="{Binding ConfirmSignedExportCommand}" />
+                                    <Button Content="Don't save" Command="{Binding DismissSignedWarningCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding NeedsExportPassword}">
+                                <TextBox Text="{Binding ExportPassword}" PasswordChar="●" Width="260" PlaceholderText="PDF password" />
+                                <Button Content="Save" Classes="accent" Command="{Binding ExportCommand}" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" IsVisible="{Binding IsExporting}">
+                                <TextBlock Text="{Binding ExportOperation}" Classes="caption" />
+                                <ProgressBar Minimum="0" Maximum="100" Height="6" Value="{Binding ExportProgress}" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ExportMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding ExportMessage}" TextWrapping="Wrap" Foreground="#17693A" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="Done" Classes="accent" Margin="12,0,0,0" VerticalAlignment="Center"
+                                        Command="{Binding FinishCommand}"
+                                        ToolTip.Tip="Closes this job and removes its temporary files. Your new copy and the original are kept." />
+                            </Grid>
+                            <TextBlock Text="{Binding ExportError}" TextWrapping="Wrap" Foreground="Firebrick"
+                                       IsVisible="{Binding ExportError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= List + comparison ================= -->
+        <Grid Grid.Row="1" ColumnDefinitions="340,12,*">
+
+            <!-- Image list -->
+            <Border Grid.Column="0" Classes="panel" IsVisible="{Binding IsGalleryVisible}">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+                    <Grid ColumnDefinitions="*,Auto" Margin="12,10">
+                        <TextBlock Text="Images" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" MinWidth="170" />
+                    </Grid>
+                    <!-- Groups from the picture classifier, each with its image count; a sheet of several kinds counts in each -->
+                    <ItemsControl Grid.Row="1" x:Name="CategoryBar" ItemsSource="{Binding CategoryFilters}" Margin="10,0,10,8">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel ItemSpacing="6" LineSpacing="6" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CategoryFilterOption">
+                                <ToggleButton Classes="group" Content="{Binding Label}" IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                              IsEnabled="{Binding IsAvailable}"
+                                              Command="{Binding $parent[ItemsControl].((vm:JobViewModel)DataContext).SelectCategoryCommand}"
+                                              CommandParameter="{Binding Key}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Border Grid.Row="2" Classes="info" Margin="10,0,10,8"
+                            IsVisible="{Binding Notice, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Notice}" />
+                    </Border>
+
+                    <!-- Virtualised: only visible rows are created, and they load thumbnails on demand. -->
+                    <ListBox Grid.Row="3" ItemsSource="{Binding VisibleItems}" SelectedItem="{Binding SelectedItem}" Background="Transparent">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ImageItemViewModel">
+                                <Grid ColumnDefinitions="64,*" MinHeight="68" Margin="0,2">
+                                    <Border Classes="thumb">
+                                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                        <Border Classes="pill" Background="{Binding StatusBrush}" HorizontalAlignment="Left">
+                                            <TextBlock Text="{Binding StatusText}" />
+                                        </Border>
+                                        <TextBlock Text="{Binding ApprovalText}" FontSize="12" FontWeight="SemiBold" Opacity="0.85"
+                                                   IsVisible="{Binding HasApprovalText}" />
+                                        <TextBlock Text="{Binding CategoryLine}" FontSize="12" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding PossibleChemicalText}" FontSize="12" FontWeight="SemiBold" Foreground="DarkOrange"
+                                                   TextWrapping="Wrap" IsVisible="{Binding IsPossibleChemical}" />
+                                        <TextBlock Text="{Binding AiRowText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AiAccentBrush}"
+                                                   TextWrapping="Wrap" IsVisible="{Binding HasAiRowText}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" Margin="10">
+                        <Button Content="Approve safe ones" Command="{Binding ApproveAllEligibleCommand}" IsEnabled="{Binding CanReview}"
+                                ToolTip.ShowOnDisabled="True"
+                                ToolTip.Tip="Approves every result that needs no careful look. Images marked 'needs review' and redrawn structures must be approved one by one." />
+                        <Button Content="Keep all originals" Command="{Binding RejectAllCommand}" IsEnabled="{Binding CanReview}"
+                                ToolTip.Tip="Rejects every change: all original images are kept." />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Comparison and decision -->
+            <Border Grid.Column="{Binding DetailColumn}" Grid.ColumnSpan="{Binding DetailColumnSpan}" Classes="panel">
+                <Panel>
+                    <StackPanel IsVisible="{Binding !HasSelection}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                        <TextBlock Text="Select an image to compare" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Classes="caption" HorizontalAlignment="Center"
+                                   Text="Images appear in the list as soon as they are ready." />
+                    </StackPanel>
+
+                    <Grid IsVisible="{Binding HasSelection}" RowDefinitions="Auto,*,Auto" Margin="12">
+                        <!-- Title, view and zoom; with an AI version, which two versions to compare -->
+                        <StackPanel Spacing="8" Margin="0,0,0,8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedItem.Title}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Classes="caption" Text="{Binding SelectedItem.Details}" />
+                            </StackPanel>
+                            <WrapPanel Grid.Column="1" ItemSpacing="6" LineSpacing="6" VerticalAlignment="Center">
+                                <Border Classes="segment">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ToggleButton Content="Side by side" IsChecked="{Binding IsSideBySide, Mode=OneWay}"
+                                                      Command="{Binding SetViewModeCommand}" CommandParameter="side" ToolTip.Tip="Original and enhanced next to each other (S)" />
+                                        <ToggleButton Content="Slider" IsChecked="{Binding IsSlider, Mode=OneWay}"
+                                                      Command="{Binding SetViewModeCommand}" CommandParameter="slider"
+                                                      ToolTip.Tip="Drag the divider to wipe between original and enhanced (S)" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Classes="segment">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="−" Classes="icon" Click="OnZoomOut" ToolTip.Tip="Zoom out (−)" />
+                                        <Button Content="{Binding ZoomText}" MinWidth="58" Command="{Binding ZoomFitCommand}"
+                                                ToolTip.Tip="Fit to view (0). Mouse wheel zooms, drag moves, double-click shows 100 %." />
+                                        <Button Content="+" Classes="icon" Click="OnZoomIn" ToolTip.Tip="Zoom in (+)" />
+                                    </StackPanel>
+                                </Border>
+                                <Button Content="{Binding ExpandLabel}" Command="{Binding ToggleExpandedCommand}" ToolTip.Tip="Use the full width (E)" />
+                                <Border Classes="segment">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="‹" Classes="icon" ToolTip.Tip="Previous image (↑)"
+                                                Command="{Binding SelectNextCommand}" CommandParameter="previous" />
+                                        <Button Content="›" Classes="icon" ToolTip.Tip="Next image (↓)"
+                                                Command="{Binding SelectNextCommand}" CommandParameter="next" />
+                                    </StackPanel>
+                                </Border>
+                            </WrapPanel>
+                        </Grid>
+                        <StackPanel x:Name="ComparePairs" Orientation="Horizontal" Spacing="10" IsVisible="{Binding SelectedItem.HasAiResult}">
+                            <TextBlock Text="Compare" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Border Classes="segment">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Content="Original ↔ OpenCV result" IsChecked="{Binding IsOriginalOpenCv, Mode=OneWay}"
+                                                  Command="{Binding SetComparePairCommand}" CommandParameter="original-opencv" />
+                                    <ToggleButton Content="Original ↔ AI version" IsChecked="{Binding IsOriginalAi, Mode=OneWay}"
+                                                  Command="{Binding SetComparePairCommand}" CommandParameter="original-ai" />
+                                    <ToggleButton Content="OpenCV result ↔ AI version" IsChecked="{Binding IsOpenCvAi, Mode=OneWay}"
+                                                  Command="{Binding SetComparePairCommand}" CommandParameter="opencv-ai" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        </StackPanel>
+
+                        <!-- Viewers -->
+                        <Grid Grid.Row="1" MinHeight="240">
+                            <!-- Side by side: both views share zoom and position -->
+                            <Grid ColumnDefinitions="*,8,*" IsVisible="{Binding IsSideBySide}">
+                                <Panel>
+                                    <local:ZoomCompareView x:Name="OriginalView" Classes="viewer"
+                                                           Source="{Binding LeftPreview}" ReferenceSize="{Binding ReferenceSize}"
+                                                           Zoom="{Binding ViewZoom}" Center="{Binding ViewCenter}"
+                                                           Marks="{Binding SelectedMarks}" />
+                                    <Border Classes="tag"><TextBlock Text="{Binding LeftLabel}" /></Border>
+                                </Panel>
+                                <Panel Grid.Column="2">
+                                    <local:ZoomCompareView x:Name="EnhancedView" Classes="viewer"
+                                                           Source="{Binding RightPreview}" ReferenceSize="{Binding ReferenceSize}"
+                                                           Zoom="{Binding ViewZoom}" Center="{Binding ViewCenter}" />
+                                    <Border Classes="tag accent" Classes.ai="{Binding IsRightAi}"><TextBlock Text="{Binding RightLabel}" /></Border>
+                                    <TextBlock Text="{Binding RightMissingText}" IsVisible="{Binding !HasRightPreview}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" Classes="caption" />
+                                </Panel>
+                            </Grid>
+                            <!-- Before/after slider -->
+                            <Panel IsVisible="{Binding IsSlider}">
+                                <local:ZoomCompareView x:Name="SliderView" Classes="viewer" SplitMode="True"
+                                                       Source="{Binding RightPreview}" CompareSource="{Binding LeftPreview}"
+                                                       ReferenceSize="{Binding ReferenceSize}" SplitPosition="{Binding SplitPosition}"
+                                                       Zoom="{Binding ViewZoom}" Center="{Binding ViewCenter}" />
+                                <Border Classes="tag">
+                                    <TextBlock>
+                                        <Run Text="{Binding LeftLabel}" /><Run Text="  ◂  ▸  " /><Run Text="{Binding RightLabel}" />
+                                    </TextBlock>
+                                </Border>
+                            </Panel>
+                        </Grid>
+
+                        <!-- Result and decision -->
+                        <ScrollViewer Grid.Row="2" MaxHeight="290" Margin="0,10,0,0">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="6" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <Border Classes="pill" Background="{Binding SelectedItem.StatusBrush}" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding SelectedItem.StatusText}" />
+                                            </Border>
+                                            <TextBlock Text="{Binding SelectedItem.ApprovalText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
+                                                IsVisible="{Binding SelectedItem.CanApprove}">
+                                        <Button Content="Approve" Classes="accent" Padding="18,6" Command="{Binding ApproveCommand}" CommandParameter="{Binding SelectedItem}"
+                                                ToolTip.Tip="Use the enhanced image in the new copy (A). Moves on to the next image." />
+                                        <Button Content="Keep original" Padding="14,6" Command="{Binding KeepOriginalCommand}" CommandParameter="{Binding SelectedItem}"
+                                                ToolTip.Tip="Keep the original image (K). Moves on to the next image." />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- What to check before approving -->
+                                <Border Classes="info" IsVisible="{Binding SelectedItem.HasReviewSummary}">
+                                    <TextBlock Text="{Binding SelectedItem.ReviewSummary}" TextWrapping="Wrap" />
+                                </Border>
+
+                                <!-- Only doubtful pictures ask for their group; confident suggestions are simply used -->
+                                <Border x:Name="CategoryQuestion" Classes="warning" IsVisible="{Binding SelectedItem.IsCategoryDoubtful}">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="{Binding SelectedItem.CategoryQuestion}" TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <ComboBox x:Name="CategoryChooser" MinWidth="240"
+                                                      ItemsSource="{Binding CategoryChoices}" SelectedItem="{Binding SelectedCategoryChoice}"
+                                                      IsEnabled="{Binding !IsBusy}" PlaceholderText="Choose a group"
+                                                      ToolTip.Tip="Your choice applies to every place this picture appears." />
+                                            <Button Content="Use the suggestion" Command="{Binding UseSuggestedCategoryCommand}"
+                                                    IsVisible="{Binding SelectedItem.HasManualCategory}" IsEnabled="{Binding !IsBusy}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Chemical pictures only: classified as chemical, read by MolScribe, or verified structure -->
+                                <Border Classes="warning" IsVisible="{Binding SelectedItem.HasChemicalStatus}">
+                                    <TextBlock x:Name="ChemicalStatus" Text="{Binding SelectedItem.ChemicalStatusText}" TextWrapping="Wrap" />
+                                </Border>
+
+                                <!-- Optional AI enhancement: suggestion first, then the outcome and the version to keep -->
+                                <Border x:Name="AiPanel" Classes="info" Classes.aiApplied="{Binding SelectedItem.UsesAi}">
+                                    <StackPanel Spacing="8">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="AI enhancement (optional)" FontWeight="SemiBold" IsVisible="{Binding !SelectedItem.HasAiHeadline}" />
+                                                <StackPanel x:Name="AiHeadline" Orientation="Horizontal" Spacing="8" IsVisible="{Binding SelectedItem.HasAiHeadline}">
+                                                    <Border Width="22" Height="22" CornerRadius="11" Background="{Binding SelectedItem.AiHeadlineBrush}" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding SelectedItem.AiHeadlineIcon}" Foreground="White" FontWeight="Bold" FontSize="13"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <TextBlock x:Name="AiHeadlineText" Text="{Binding SelectedItem.AiHeadline}" FontWeight="SemiBold" FontSize="15"
+                                                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                                <TextBlock x:Name="AiText" Text="{Binding SelectedItem.AiText}" TextWrapping="Wrap" />
+                                                <StackPanel Spacing="4" IsVisible="{Binding IsAiRunning}" Margin="0,4,0,0">
+                                                    <TextBlock Classes="caption" Text="{Binding AiProgressText}" />
+                                                    <ProgressBar x:Name="AiPanelProgress" IsIndeterminate="True" Height="4" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" x:Name="TryAiButton" Content="Try AI enhancement" VerticalAlignment="Top"
+                                                    Command="{Binding TryAiCommand}" IsVisible="{Binding SelectedItem.CanTryAi}" IsEnabled="{Binding CanTryAiSelected}"
+                                                    ToolTip.Tip="Makes an AI version next to the OpenCV result and checks it. Nothing is approved or switched for you." />
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding SelectedItem.IsAiAccepted}">
+                                            <TextBlock Text="Version to keep" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            <Border Classes="segment">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <ToggleButton x:Name="UseNormalVersion" Content="{Binding SelectedItem.NormalVersionLabel}"
+                                                                  IsChecked="{Binding SelectedItem.UsesNormal, Mode=OneWay}"
+                                                                  Command="{Binding UseVersionCommand}" CommandParameter="opencv" />
+                                                    <ToggleButton x:Name="UseAiVersion" Content="AI version" IsChecked="{Binding SelectedItem.UsesAi, Mode=OneWay}"
+                                                                  Command="{Binding UseVersionCommand}" CommandParameter="ai" />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                        <Border Classes="warning" IsVisible="{Binding HasPendingVersion}">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="{Binding PendingVersionText}" TextWrapping="Wrap" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <Button Content="Yes, switch" Classes="accent" Command="{Binding ConfirmVersionSwitchCommand}" />
+                                                    <Button Content="No, keep my approval" Command="{Binding CancelVersionSwitchCommand}" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Only identified chemical candidates have structure checks. Details are opt-in. -->
+                                <Border Classes="mismatch" IsVisible="{Binding SelectedItem.HasMismatches}">
+                                    <Expander x:Name="StructureChecks" Header="{Binding SelectedItem.MismatchSummary}"
+                                              IsExpanded="{Binding StructureChecksExpanded, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="{Binding SelectedItem.MismatchText}" TextWrapping="Wrap" />
+                                            <CheckBox IsChecked="{Binding ShowMismatches}" Content="Highlight these areas on the original"
+                                                      IsVisible="{Binding SelectedItem.HasMismatchMarks}" />
+                                        </StackPanel>
+                                    </Expander>
+                                </Border>
+
+                                <!-- Levels 1-4: each click enhances this image again at that level -->
+                                <StackPanel Spacing="4" IsVisible="{Binding CanAdjustSelection}">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="Try another strength" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                        <Border Classes="segment">
+                                            <StackPanel Orientation="Horizontal">
+                                                <ToggleButton Content="1 Light" IsChecked="{Binding SelectedItem.IsLevel1, Mode=OneWay}"
+                                                              Command="{Binding ApplyLevelCommand}" CommandParameter="gentle"
+                                                              ToolTip.Tip="Small fixes only" />
+                                                <ToggleButton Content="2 Standard" IsChecked="{Binding SelectedItem.IsLevel2, Mode=OneWay}"
+                                                              Command="{Binding ApplyLevelCommand}" CommandParameter="standard"
+                                                              ToolTip.Tip="Noise and grey shading removed, darker and crisper text (recommended)" />
+                                                <ToggleButton Content="3 Strong" IsChecked="{Binding SelectedItem.IsLevel3, Mode=OneWay}"
+                                                              Command="{Binding ApplyLevelCommand}" CommandParameter="strong"
+                                                              ToolTip.Tip="Stronger cleaning and deblurring, slightly bolder faint text" />
+                                                <ToggleButton Content="4 Maximum" IsChecked="{Binding SelectedItem.IsLevel4, Mode=OneWay}"
+                                                              Command="{Binding ApplyLevelCommand}" CommandParameter="maximum"
+                                                              ToolTip.Tip="The strongest cleaning and the crispest text; check closely" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Button x:Name="LevelHistoryButton" IsVisible="{Binding HasLevelHistory}" Padding="8,5"
+                                                ToolTip.Tip="Levels tried on this picture and how accurate each was">
+                                            <PathIcon Data="F0 M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 Z M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 Z M11,6 L13,6 L13,11.4 L16.6,13.5 L15.6,15.2 L11,12.6 Z" Width="16" Height="16" />
+                                            <Button.Flyout>
+                                                <Flyout Placement="TopEdgeAlignedLeft">
+                                                    <StackPanel Spacing="8" MaxWidth="420">
+                                                        <TextBlock Text="Levels tried on this picture" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding LevelHistoryText}" TextWrapping="Wrap" />
+                                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                                   Text="The higher the share of lines and letters kept, the closer the result is to the original." />
+                                                    </StackPanel>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <ProgressBar IsIndeterminate="True" Width="80" IsVisible="{Binding IsBusy}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding LevelWarning}" Foreground="DarkOrange" FontSize="12" TextWrapping="Wrap"
+                                               IsVisible="{Binding HasLevelWarning}" />
+                                </StackPanel>
+
+                                <Expander Header="Processing details" HorizontalAlignment="Stretch">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding SelectedItem.ClassificationDetails}" Classes="caption" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding SelectedItem.Explanation}" Classes="caption" TextWrapping="Wrap"
+                                                   IsVisible="{Binding SelectedItem.HasExplanation}" />
+                                        <TextBlock Text="{Binding SelectedItem.AccuracyText}" Classes="caption" TextWrapping="Wrap"
+                                                   IsVisible="{Binding SelectedItem.HasAccuracy}" />
+                                        <TextBlock Text="{Binding SelectedItem.OperationsText}" Classes="caption" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding SelectedItem.RedrawText}" Classes="caption" TextWrapping="Wrap"
+                                                   IsVisible="{Binding SelectedItem.HasRedraw}" />
+                                        <TextBlock Text="{Binding SelectedItem.TextCheckText}" Classes="caption" TextWrapping="Wrap" IsVisible="{Binding SelectedItem.HasTextCheck}" />
+                                        <TextBlock Text="{Binding SelectedItem.ChoiceText}" Classes="caption" TextWrapping="Wrap" IsVisible="{Binding SelectedItem.HasChoice}" />
+                                        <TextBlock Text="{Binding SelectedItem.NotesText}" Classes="caption" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Expander>
+
+                                <Expander Header="Fine-tune (advanced)" IsVisible="{Binding CanAdjustSelection}" HorizontalAlignment="Stretch">
+                                    <StackPanel Spacing="8">
+                                        <ToggleSwitch IsChecked="{Binding ManualMode}" OnContent="Manual settings" OffContent="Automatic (recommended)" />
+                                        <Grid ColumnDefinitions="140,Auto" IsVisible="{Binding !ManualMode}">
+                                            <TextBlock Text="Bolder text" VerticalAlignment="Center" />
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding BoldChoices}" SelectedItem="{Binding SelectedBold}" MinWidth="200"
+                                                      ToolTip.Tip="Slightly thicker, darker text and lines on low-quality text, tables and diagrams. Letter holes and close lines stay open." />
+                                        </Grid>
+                                        <StackPanel Spacing="8" IsVisible="{Binding ManualMode}">
+                                            <Grid ColumnDefinitions="140,*,48">
+                                                <TextBlock Text="Noise reduction" VerticalAlignment="Center" />
+                                                <Slider Grid.Column="1" Minimum="0" Maximum="15" Value="{Binding DenoiseStrength}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding DenoiseStrength, StringFormat={}{0:0.0}}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="140,*,48">
+                                                <TextBlock Text="Local contrast" VerticalAlignment="Center" />
+                                                <Slider Grid.Column="1" Minimum="0" Maximum="4" Value="{Binding ContrastStrength}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding ContrastStrength, StringFormat={}{0:0.0}}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="140,*,48">
+                                                <TextBlock Text="Sharpening" VerticalAlignment="Center" />
+                                                <Slider Grid.Column="1" Minimum="0" Maximum="2" Value="{Binding SharpenAmount}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding SharpenAmount, StringFormat={}{0:0.00}}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                            </Grid>
+                                        </StackPanel>
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="The result always has exactly the same pixel size as the original. Changes apply to every place this image appears." />
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Content="Enhance again" Classes="accent" Command="{Binding ReenhanceCommand}" />
+                                            <Button Content="Reset" Command="{Binding ResetAdjustmentsCommand}" />
+                                            <ProgressBar IsIndeterminate="True" Width="120" IsVisible="{Binding IsBusy}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Expander>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Panel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

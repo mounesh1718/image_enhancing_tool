@@ -1,0 +1,46 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ImageQualityEnhancer.App"
+             xmlns:local="using:ImageQualityEnhancer"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <!-- App colours for light and dark mode (follows the system setting). -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F3F6F9" />
+                    <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="PanelBorderBrush" Color="#D8DFE6" />
+                    <SolidColorBrush x:Key="ViewerBrush" Color="#E9EEF2" />
+                    <SolidColorBrush x:Key="DropZoneBrush" Color="#EAF2F9" />
+                    <SolidColorBrush x:Key="AiAccentBrush" Color="#6B46C1" />
+                    <SolidColorBrush x:Key="AiAppliedBrush" Color="#F1ECFB" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#11171D" />
+                    <SolidColorBrush x:Key="PanelBrush" Color="#18212A" />
+                    <SolidColorBrush x:Key="PanelBorderBrush" Color="#2B3845" />
+                    <SolidColorBrush x:Key="ViewerBrush" Color="#0D1217" />
+                    <SolidColorBrush x:Key="DropZoneBrush" Color="#16283A" />
+                    <SolidColorBrush x:Key="AiAccentBrush" Color="#B9A3F5" />
+                    <SolidColorBrush x:Key="AiAppliedBrush" Color="#241E3A" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#FF1D5C8C" />
+                <ColorPaletteResources x:Key="Dark" Accent="#FF4F95CC" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+    </Application.Styles>
+</Application>

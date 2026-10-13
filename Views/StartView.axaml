@@ -1,0 +1,241 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ImageQualityEnhancer.ViewModels"
+             x:Class="ImageQualityEnhancer.Views.StartView"
+             x:DataType="vm:StartViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource PanelBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- Numbered step badge -->
+        <Style Selector="Border.step">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="CornerRadius" Value="13" />
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+        <Style Selector="Border.step > TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- Segmented choice (one of several) -->
+        <Style Selector="Border.segment">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Border.segment ToggleButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,6" />
+        </Style>
+        <!-- Messages: information, or an error -->
+        <Style Selector="Border.notice">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PanelBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource DropZoneBrush}" />
+        </Style>
+        <Style Selector="Border.notice.error">
+            <Setter Property="BorderBrush" Value="Firebrick" />
+        </Style>
+        <Style Selector="Border.notice.error > TextBlock">
+            <Setter Property="Foreground" Value="Firebrick" />
+        </Style>
+    </UserControl.Styles>
+
+    <Panel>
+    <ScrollViewer>
+        <StackPanel MaxWidth="760" Margin="32,36" Spacing="20" HorizontalAlignment="Stretch">
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Image Quality Enhancer" FontSize="28" FontWeight="SemiBold" />
+                    <TextBlock TextWrapping="Wrap" Opacity="0.8" FontSize="15"
+                               Text="Makes the images in PDFs, Word files and pictures clearer. You approve every change, and the original file is never changed." />
+                </StackPanel>
+                <!-- History: jobs saved for later, opened on demand -->
+                <Button x:Name="HistoryButton" Grid.Column="1" VerticalAlignment="Top" Padding="12,7"
+                        Command="{Binding ToggleHistoryCommand}" ToolTip.Tip="Jobs you saved for later: continue or remove them">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="F0 M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 Z M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 Z M11,6 L13,6 L13,11.4 L16.6,13.5 L15.6,15.2 L11,12.6 Z" Width="16" Height="16" />
+                        <TextBlock Text="History" VerticalAlignment="Center" />
+                        <Border CornerRadius="9" Padding="6,0" MinWidth="18" Background="{DynamicResource SystemAccentColor}"
+                                IsVisible="{Binding HasSavedJobs}" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding SavedJobCount}" Foreground="White" FontSize="11" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- The last result (job saved, finished, cancelled or failed) -->
+            <Border Classes="notice" Classes.error="{Binding IsError}"
+                    IsVisible="{Binding Message, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Shown when a PDF needs its password -->
+            <Border Classes="card" IsVisible="{Binding NeedsPassword}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding PasswordPrompt}" TextWrapping="Wrap" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox Text="{Binding Password}" PasswordChar="●" Width="280" PlaceholderText="PDF password" />
+                        <Button Content="Continue" Command="{Binding SubmitPasswordCommand}" Classes="accent" />
+                        <Button Content="Not now" Command="{Binding DismissPasswordCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="The password is only used for this session and is never saved." Classes="caption" />
+                </StackPanel>
+            </Border>
+
+            <!-- Step 1: how to enhance -->
+            <Border Classes="card">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Classes="step"><TextBlock Text="1" /></Border>
+                        <TextBlock Classes="section" Text="Choose how to enhance" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
+                        <TextBlock Classes="label" Text="Strength" VerticalAlignment="Top" Margin="0,7,0,0" />
+                        <StackPanel Grid.Column="1" Spacing="6">
+                            <Border Classes="segment">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Content="1 Light" IsChecked="{Binding IsLevel1, Mode=OneWay}" Command="{Binding SetLevelCommand}" CommandParameter="gentle" />
+                                    <ToggleButton Content="2 Standard" IsChecked="{Binding IsLevel2, Mode=OneWay}" Command="{Binding SetLevelCommand}" CommandParameter="standard" />
+                                    <ToggleButton Content="3 Strong" IsChecked="{Binding IsLevel3, Mode=OneWay}" Command="{Binding SetLevelCommand}" CommandParameter="strong" />
+                                    <ToggleButton Content="4 Maximum" IsChecked="{Binding IsLevel4, Mode=OneWay}" Command="{Binding SetLevelCommand}" CommandParameter="maximum" />
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Classes="caption" Text="{Binding LevelDescription}" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Classes="label" Text="Chemical structures" VerticalAlignment="Top" Margin="0,7,0,0" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="6">
+                            <Border Classes="segment">
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton Content="Improve only" IsChecked="{Binding IsImproveOnly, Mode=OneWay}"
+                                                  Command="{Binding SetStructuresCommand}" CommandParameter="improve" />
+                                    <ToggleButton Content="Redraw when verified" IsChecked="{Binding IsRedrawProven, Mode=OneWay}"
+                                                  Command="{Binding SetStructuresCommand}" CommandParameter="redraw" />
+                                    <ToggleButton Content="Redraw all" IsChecked="{Binding IsRedrawAll, Mode=OneWay}"
+                                                  Command="{Binding SetStructuresCommand}" CommandParameter="all" />
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Classes="caption" Text="{Binding StructuresDescription}" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="2" Classes="label" Text="AI enhancement" VerticalAlignment="Top" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Classes="caption"
+                                   Text="Optional, after processing. The comparison screen suggests where AI may help (grain, strong JPEG damage, blurred text, soft photos), lets you try it on one picture or on all eligible ones, and keeps the normal result so you can choose." />
+                    </Grid>
+
+                    <Expander Header="More options" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto" RowSpacing="14">
+                            <TextBlock Classes="label" Text="Bolder text" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding BoldChoices}" SelectedItem="{Binding SelectedBold}" MinWidth="220" />
+                            <TextBlock Grid.Row="1" Classes="label" Text="Text check" VerticalAlignment="Top" Margin="0,5,0,0" />
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                                <CheckBox IsChecked="{Binding CheckText}" Content="Make sure no letters or numbers changed" />
+                                <TextBlock Classes="caption" Text="Reads the text before and after. Adds about 4 seconds per image with text." />
+                            </StackPanel>
+                        </Grid>
+                    </Expander>
+                </StackPanel>
+            </Border>
+
+            <!-- Step 2: add files (starts the job) -->
+            <Border Classes="card">
+                <StackPanel Spacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Classes="step"><TextBlock Text="2" /></Border>
+                        <TextBlock Classes="section" Text="Add files to start" />
+                    </StackPanel>
+                    <Panel MinHeight="170">
+                        <Rectangle Stroke="{DynamicResource SystemAccentColor}" StrokeThickness="2" StrokeDashArray="6,4"
+                                   RadiusX="12" RadiusY="12" Fill="{DynamicResource DropZoneBrush}" />
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Margin="20">
+                            <TextBlock Text="Drop a PDF, a Word file or images here" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                            <Button Content="Choose files…" Command="{Binding ChooseFilesCommand}" Classes="accent"
+                                    FontSize="15" Padding="24,10" HorizontalAlignment="Center" />
+                            <TextBlock Classes="caption" HorizontalAlignment="Center" TextAlignment="Center"
+                                       Text="PDF · Word · JPG · PNG · TIFF · BMP · WebP · GIF · JPEG 2000" />
+                        </StackPanel>
+                    </Panel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+    <!-- History panel: a click outside it closes it -->
+    <Button x:Name="HistoryBackdrop" IsVisible="{Binding IsHistoryOpen}" Command="{Binding CloseHistoryCommand}"
+            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#33000000" BorderThickness="0"
+            CornerRadius="0" Focusable="False" />
+    <Border x:Name="HistoryPanel" Classes="card" IsVisible="{Binding IsHistoryOpen}" Width="420" Margin="12"
+            HorizontalAlignment="Right" VerticalAlignment="Stretch" Padding="18" BoxShadow="0 6 24 0 #40000000">
+        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <PathIcon Data="F0 M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 Z M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 Z M11,6 L13,6 L13,11.4 L16.6,13.5 L15.6,15.2 L11,12.6 Z" Width="18" Height="18" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Classes="section" Text="History" />
+                <Button Grid.Column="2" Content="✕" Command="{Binding CloseHistoryCommand}" ToolTip.Tip="Close" Padding="10,4" />
+            </Grid>
+            <TextBlock Grid.Row="1" Classes="caption"
+                       Text="Jobs you saved for later. Continue one to review it, or remove it to delete its temporary copies (your original files are never touched)." />
+            <Panel Grid.Row="2">
+                <TextBlock Classes="caption" IsVisible="{Binding !HasSavedJobs}" Margin="0,8"
+                           Text="Nothing saved yet. When you go back to this page before finishing a job, it is kept here." />
+                <ScrollViewer IsVisible="{Binding HasSavedJobs}">
+                    <ItemsControl ItemsSource="{Binding SavedJobs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SavedJobViewModel">
+                                <Border Classes="card" Margin="0,4" Padding="12,10">
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Description}" Classes="caption" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <Button Content="Continue" Classes="accent" IsVisible="{Binding CanResume}"
+                                                    Command="{Binding $parent[UserControl].((vm:StartViewModel)DataContext).ResumeJobCommand}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Remove"
+                                                    ToolTip.Tip="Deletes this job's temporary copies. Your original file is not touched."
+                                                    Command="{Binding $parent[UserControl].((vm:StartViewModel)DataContext).DeleteJobCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Panel>
+        </Grid>
+    </Border>
+    </Panel>
+</UserControl>
